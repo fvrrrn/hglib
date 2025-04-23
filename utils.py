@@ -1,26 +1,6 @@
 import random
-
-
-def combinations(iterable, r):
-    # combinations('ABCD', 2) --> AB AC AD BC BD CD
-    # combinations(range(4), 3) --> 012 013 023 123
-    pool = tuple(iterable)
-    n = len(pool)
-    if r > n:
-        return
-    indices = list(range(r))
-    yield tuple(pool[i] for i in indices)
-    while True:
-        for i in reversed(range(r)):
-            if indices[i] != i + n - r:
-                break
-        else:
-            return
-        indices[i] += 1
-        for j in range(i + 1, r):
-            indices[j] = indices[j - 1] + 1
-        yield tuple(pool[i] for i in indices)
-
+from itertools import combinations
+from collections import Counter
 
 def count(iterable, item):
     c = 0
@@ -51,6 +31,23 @@ def exclusions(iterable1, iterable2):
         combs = e1
 
     return combs
+
+# между O(n^2) и O(n * 2^n) по времени
+# O(n + k) по памяти
+def exclusions_lazy(iterable1, iterable2):
+    required = set(iterable1) - set(iterable2)
+    required_counts = Counter(c for c in iterable1 if c in required)
+
+    n = len(iterable1)
+    iterable1 = tuple(iterable1)
+
+    for r in range(1, n + 1):
+        for comb in combinations(range(n), r):
+            sub = tuple(iterable1[i] for i in comb)
+            sub_counts = Counter(sub)
+
+            if all(sub_counts[sym] == required_counts[sym] for sym in required):
+                yield ''.join(sub)
 
 
 def weighted_choice(weights):
